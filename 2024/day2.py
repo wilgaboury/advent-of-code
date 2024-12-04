@@ -25,3 +25,21 @@ for report in reports:
         count += 1
 
 print(count)
+
+def isSafeDampenDumb(report):
+    if isSafe(report):
+        return True
+    else:
+        for i in range(0, len(report)):
+            copy = report.copy()
+            del copy[i]
+            if isSafe(copy):
+                return True
+        return False
+
+count = 0
+for report in reports:
+    if isSafeDampenDumb(report):
+        count += 1
+
+print(count)
