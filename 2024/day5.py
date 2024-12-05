@@ -24,9 +24,24 @@ def isOrdered(update):
             return False
     return True
 
-result = 0
+def order(update):
+    for i in range(1, len(update)):
+        for j in range(i, 0, -1):
+            if update[j-1] in rules[update[j]]:
+                tmp = update[j-1]
+                update[j-1] = update[j]
+                update[j] = tmp
+            else:
+                break
+
+part1 = 0
+part2 = 0
 for update in updates:
     if isOrdered(update):
-        result += update[len(update)//2]
+        part1 += update[len(update)//2]
+    else:
+        order(update)
+        part2 += update[len(update)//2]
 
-print(result)
+print(part1)
+print(part2)
