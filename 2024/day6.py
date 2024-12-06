@@ -1,3 +1,4 @@
+# table = [list(x) for x in open("day6_test_input.txt", "r").readlines()]
 table = [list(x) for x in open("day6_input.txt", "r").readlines()]
 
 gaurd = None
@@ -22,13 +23,15 @@ def moveState(state):
 
 def nextState(state):
     global table
+    turns = 0
     while True:
         testNext = moveState(state)
         if not inBounds(testNext):
-            return None
+            return (None, turns)
         elif table[testNext[1]][testNext[2]] != '#':
-            return testNext
+            return (testNext, turns)
         else:
+            turns += 1
             state = ((state[0]+1)%4, state[1], state[2])
 
 def inBounds(state):
@@ -39,23 +42,26 @@ def isLoop(state):
     start = state
     turns = 0
     while True:
-        testNext = nextState(state)
+        testNext, newTurns = nextState(state)
+        turns += newTurns
+        
         if testNext is None:
             return False
         elif testNext == start:
             return True
-        turns += abs(testNext[0] - state[0])
-        if turns > 4:
-            return False
+        
         state = testNext
         
 
 state = (0, gaurd[0], gaurd[1])
 visited = set()
 part2 = 0
+itr = 0
 while state is not None:
+    print(itr)
+    itr+=1
     visited.add((state[1], state[2]))
-    testNext = nextState(state)
+    testNext = nextState(state)[0]
     if testNext is not None:
         table[testNext[1]][testNext[2]] = '#'
         if isLoop(state):
@@ -63,5 +69,6 @@ while state is not None:
         table[testNext[1]][testNext[2]] = '.'
     state = testNext
         
-print(len(visited))
-print(part2)
+print("SOLTIONS")
+print("part1", len(visited))
+print("part2", part2)
