@@ -37,32 +37,51 @@ def inBounds(pos):
     return pos[0] >= 0 and pos[0] < len(table) and pos[1] >= 0 and pos[1] < len(table[0])
 
 visited = set()
+loopTestPos = set()
 while inBounds(gaurd):
     visited.add(gaurd)
+    if direction == 0 and gaurd[0] > 0 and table[gaurd[0]-1][gaurd[1]] == "#":
+        loopTestPos.add(gaurd)
     gaurd = nextGaurdPos()
 
 print(len(visited))
 
+print(loopTestPos)
 
-def checkForLoop(row, col, height, width):
+def getLoopCount(row, col, height, width):
     count = 0
-    if table[row][col+1] == "#":
+    if table[row-1][col] == "#":
         count += 1
-    if table[row+1][col + width] == "#":
+    if table[row][col + width] == "#":
         count += 1
     if table[row+height][col+width-1] == "#":
         count += 1
-    if table[row+height-1][col] == "#":
+    if table[row+height-1][col-1] == "#":
         count += 1
-    return count == 3
+    return count
 
 count = 0
-for row in range(len(table)-2):
-    for col in range(len(table[0])-2):
-        for height in range(2, (len(table[0])-1)-row):
-            for width in range(2, (len(table)-1)-col):
-                print(row, col, height, width)
-                if checkForLoop(row, col, height, width):
-                    count += 1
+for row, col in loopTestPos:
+    # limitHeight = False
+    # limitWidth = None
+    for height in range(2, (len(table[0])-1)-row):
+        # for width in ([limitWidth] if limitWidth is not None else range(2, (len(table)-1)-col)):
+        for width in range(2, (len(table)-1)-col):
+            loopCount = getLoopCount(row, col, height, width)
+
+            if loopCount == 4:
+                limitHeight = True
+                break
+
+            if loopCount == 3:
+                count += 1
+
+                # if table[row][col + width] != "#":
+                #     limitHeight = True
+                # if table[row+height][col+width-1] != "#":
+                #     limitWidth = width
+                
+        # if limitHeight:
+        #     break
 
 print(count)
