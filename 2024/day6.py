@@ -1,8 +1,6 @@
-table = open("day6_input.txt", "r").readlines()
+table = [list(x) for x in open("day6_input.txt", "r").readlines()]
 
-direction = 0
 gaurd = None
-
 for row in range(len(table)):
     for col in range(len(table[0])):
         if table[row][col] == "^":
@@ -11,77 +9,59 @@ for row in range(len(table)):
     if gaurd is not None:
         break
 
-def nextDirPos():
-    global direction
-    match direction:
+def moveState(state):
+    match state[0]:
         case 0:
-            return (gaurd[0]-1, gaurd[1])
+            return (state[0], state[1]-1, state[2])
         case 1:
-            return (gaurd[0], gaurd[1]+1)
+            return (state[0], state[1], state[2]+1)
         case 2:
-            return (gaurd[0]+1, gaurd[1])
+            return (state[0], state[1]+1, state[2])
         case 3:
-            return (gaurd[0], gaurd[1]-1)
+            return (state[0], state[1], state[2]-1)
 
-def nextGaurdPos():
-    global direction
-    nextPos = None
-    while nextPos is None:
-        nextPos = nextDirPos()
-        if table[nextPos[0]][nextPos[1]] == "#":
-            direction = (direction + 1) % 4
-            nextPos = None
-    return nextPos
+def nextState(state):
+    global table
+    while True:
+        testNext = moveState(state)
+        if not inBounds(testNext):
+            return None
+        elif table[testNext[1]][testNext[2]] != '#':
+            return testNext
+        else:
+            state = ((state[0]+1)%4, state[1], state[2])
 
-def inBounds(pos):
-    return pos[0] >= 0 and pos[0] < len(table) and pos[1] >= 0 and pos[1] < len(table[0])
+def inBounds(state):
+    global table
+    return state[1] >= 0 and state[1] < len(table) and state[2] >= 0 and state[2] < len(table[0])
 
+def isLoop(state):
+    start = state
+    turns = 0
+    while True:
+        testNext = nextState(state)
+        if testNext is None:
+            return False
+        elif testNext == start:
+            return True
+        turns += abs(testNext[0] - state[0])
+        if turns > 4:
+            return False
+        state = testNext
+        
+
+state = (0, gaurd[0], gaurd[1])
 visited = set()
-loopTestPos = set()
-while inBounds(gaurd):
-    visited.add(gaurd)
-    if direction == 0 and gaurd[0] > 0 and table[gaurd[0]-1][gaurd[1]] == "#":
-        loopTestPos.add(gaurd)
-    gaurd = nextGaurdPos()
-
+part2 = 0
+while state is not None:
+    visited.add((state[1], state[2]))
+    testNext = nextState(state)
+    if testNext is not None:
+        table[testNext[1]][testNext[2]] = '#'
+        if isLoop(state):
+            part2 += 1
+        table[testNext[1]][testNext[2]] = '.'
+    state = testNext
+        
 print(len(visited))
-
-print(loopTestPos)
-
-def getLoopCount(row, col, height, width):
-    count = 0
-    if table[row-1][col] == "#":
-        count += 1
-    if table[row][col + width] == "#":
-        count += 1
-    if table[row+height][col+width-1] == "#":
-        count += 1
-    if table[row+height-1][col-1] == "#":
-        count += 1
-    return count
-
-count = 0
-for row, col in loopTestPos:
-    # limitHeight = False
-    # limitWidth = None
-    for height in range(2, (len(table[0])-1)-row):
-        # for width in ([limitWidth] if limitWidth is not None else range(2, (len(table)-1)-col)):
-        for width in range(2, (len(table)-1)-col):
-            loopCount = getLoopCount(row, col, height, width)
-
-            if loopCount == 4:
-                limitHeight = True
-                break
-
-            if loopCount == 3:
-                count += 1
-
-                # if table[row][col + width] != "#":
-                #     limitHeight = True
-                # if table[row+height][col+width-1] != "#":
-                #     limitWidth = width
-                
-        # if limitHeight:
-        #     break
-
-print(count)
+print(part2)
