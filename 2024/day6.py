@@ -22,15 +22,13 @@ def moveState(state):
 
 def nextState(state):
     global table
-    turns = 0
     while True:
         testNext = moveState(state)
         if not inBounds(testNext):
-            return (None, turns)
+            return None
         elif table[testNext[1]][testNext[2]] != '#':
-            return (testNext, turns)
+            return testNext
         else:
-            turns += 1
             state = ((state[0]+1)%4, state[1], state[2])
 
 def inBounds(state):
@@ -39,25 +37,21 @@ def inBounds(state):
 
 def isLoop(state):
     visited = set()
-    turns = 0
     while True:
         visited.add(state)
-        testNext, newTurns = nextState(state)
-        turns += newTurns
-        
+        testNext = nextState(state)        
         if testNext is None:
             return False
         elif testNext in visited:
             return True
         state = testNext
         
-
 state = (0, gaurd[0], gaurd[1])
 visited = set()
 part2 = 0
 while state is not None:
     visited.add((state[1], state[2]))
-    testNext = nextState(state)[0]
+    testNext = nextState(state)
     if testNext is not None:
         table[testNext[1]][testNext[2]] = '#'
         if isLoop(state):
