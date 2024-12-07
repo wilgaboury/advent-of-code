@@ -1,2 +1,0 @@
-Solution for part 1: 5534
-Solution for part 2: 2261 or maybe 2262
