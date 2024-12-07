@@ -1,4 +1,5 @@
 table = [list(x) for x in open("day6_input.txt", "r").readlines()]
+f = open("day6_check.txt", "w")
 
 gaurd = None
 for row in range(len(table)):
@@ -53,10 +54,9 @@ while state is not None:
     visited.add((state[1], state[2]))
     testNext = nextState(state)
     if testNext is not None and (testNext[1], testNext[2]) not in obs:
-        if table[testNext[1]][testNext[2]] == '#':
-            print("guh")
         table[testNext[1]][testNext[2]] = '#'
         if isLoop(state):
+            f.write(str((testNext[1], testNext[2])) + "\n")
             obs.add((testNext[1], testNext[2]))
         table[testNext[1]][testNext[2]] = '.'
     state = testNext
