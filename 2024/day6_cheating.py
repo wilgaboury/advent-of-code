@@ -63,7 +63,7 @@ for potential_obs in visited:
             # We found a turn, let's check to see if we've made this same turn before
             if (curr_x, curr_y, dx, dy) in temp_visited:
                 # We've made this exact turn before so we've found a loop. Stop checking.
-                f.write(str(potential_obs) + "\n")
+                f.write(str((potential_obs[1], potential_obs[0])) + "\n")
                 obstructions += 1
                 break
             # This is a new turn, add it to the set and make the turn
