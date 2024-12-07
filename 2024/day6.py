@@ -48,16 +48,18 @@ def isLoop(state):
         
 state = (0, gaurd[0], gaurd[1])
 visited = set()
-part2 = 0
+obs = set()
 while state is not None:
     visited.add((state[1], state[2]))
     testNext = nextState(state)
-    if testNext is not None:
+    if testNext is not None and (testNext[1], testNext[2]) not in obs:
+        if table[testNext[1]][testNext[2]] == '#':
+            print("guh")
         table[testNext[1]][testNext[2]] = '#'
         if isLoop(state):
-            part2 += 1
+            obs.add((testNext[1], testNext[2]))
         table[testNext[1]][testNext[2]] = '.'
     state = testNext
         
 print(len(visited))
-print(part2)
+print(len(obs))
