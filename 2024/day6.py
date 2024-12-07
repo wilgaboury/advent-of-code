@@ -38,8 +38,6 @@ def inBounds(state):
 def isLoop(state):
     visited = set()
     while True:
-        if debug:
-            print(state)
         visited.add(state)
         testNext = nextState(state)        
         if testNext is None:
