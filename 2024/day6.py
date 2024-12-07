@@ -1,5 +1,4 @@
 table = [list(x) for x in open("day6_input.txt", "r").readlines()]
-f = open("day6_check.txt", "w")
 
 gaurd = None
 for row in range(len(table)):
@@ -39,6 +38,8 @@ def inBounds(state):
 def isLoop(state):
     visited = set()
     while True:
+        if debug:
+            print(state)
         visited.add(state)
         testNext = nextState(state)        
         if testNext is None:
@@ -50,13 +51,14 @@ def isLoop(state):
 state = (0, gaurd[0], gaurd[1])
 visited = set()
 obs = set()
+itr = 0
 while state is not None:
+    itr += 1
     visited.add((state[1], state[2]))
     testNext = nextState(state)
-    if testNext is not None and (testNext[1], testNext[2]) not in obs:
+    if testNext is not None and (testNext[1], testNext[2]) not in obs and (testNext[1], testNext[2]) not in visited:
         table[testNext[1]][testNext[2]] = '#'
         if isLoop(state):
-            f.write(str((testNext[1], testNext[2])) + "\n")
             obs.add((testNext[1], testNext[2]))
         table[testNext[1]][testNext[2]] = '.'
     state = testNext
