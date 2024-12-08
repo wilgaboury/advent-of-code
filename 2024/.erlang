@@ -1,0 +1,3 @@
+% load all modules automatically
+[code:ensure_loaded(list_to_atom(filename:rootname(filename:basename(F)))) 
+    || P <- code:get_path(), F <- filelib:wildcard(P ++ "/*.beam")].
