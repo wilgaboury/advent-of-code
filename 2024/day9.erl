@@ -3,6 +3,10 @@
 
 -define(DEFAULT_INPUT_FILE, "day9_input.txt").
 
+read_file(Filename) -> 
+    [Line] = aocutil:read_lines(Filename),
+    Line.
+
 parse_disk(Line) -> parse_disk(Line, 0, []).
 parse_disk([File], Id, Acc) -> 
     FileSize = list_to_integer([File]),
@@ -31,10 +35,27 @@ checksum([Head|Rest], Pos, Checksum) ->
         free -> checksum(Rest, Pos+1, Checksum)
     end.
 
+list_to_blocks(List) -> list_to_blocks(List, []).
+list_to_blocks([], Acc) -> lists:reverse(Acc);
+list_to_blocks([Head|Rest], Acc) ->
+    Next = lists:dropwhile(fun(E) -> E == Head end, Rest),
+    Count = 1+length(Rest)-length(Next),
+    list_to_blocks(Next, [{Count, Head}|Acc]).
+
+blocks_to_list(Blocks) -> lists:reverse(lists:foldl(
+        fun({Count, Value}, Acc) ->
+            lists:duplicate(Count, Value)++Acc
+        end,
+        [],
+        Blocks
+    )).
+
+compact_blocks(List) -> List.
+
 part1() -> part1(?DEFAULT_INPUT_FILE).
 part1(Filename) ->
-    checksum(compact(parse_disk(aocutil:read_lines(Filename)))).
+    checksum(compact(parse_disk(read_file(Filename)))).
 
 part2() -> part2(?DEFAULT_INPUT_FILE).
-part2(_Filename) ->
-    ok.
+part2(Filename) ->
+    checksum(blocks_to_list(compact_blocks(list_to_blocks(parse_disk(read_file(Filename)))))).
