@@ -71,18 +71,20 @@ remove_block(TargetId, List) ->
 compact_blocks(List) -> compact_blocks(lists:reverse(List), List).
 compact_blocks([], Acc) -> Acc;
 compact_blocks([{_, free}|Rest], Acc) -> compact_blocks(Rest, Acc);
-compact_blocks([{BCount,{file, BId}}|Rest], Acc) ->
-    Splitter = fun({Count, Value}) ->
+compact_blocks([{FileCount,{file, FileId}}|Rest], Acc) ->
+    InsertSplitter = fun({Count, Value}) ->
         case Value of
-            {file, Id} -> BId /= Id;
-            free -> Count < BCount
+            {file, Id} -> FileId /= Id;
+            free -> Count < FileCount
         end
     end,
-    {AccStart, AccEnd} = lists:splitwith(Splitter, Acc),
+    {AccStart, AccEnd} = lists:splitwith(InsertSplitter, Acc),
     case AccEnd of
-        [{Count, free}|AccEndRest] -> compact_blocks(Rest, cleanup_free_blocks(AccStart++[{BCount,{file, BId}}, {Count-BCount, free}]++remove_block(BId, AccEndRest)));
-        [] -> compact_blocks(Rest, AccStart);
-        _ -> compact_blocks(Rest, AccStart++AccEnd) 
+        [{FreeCount, free}|AccEndRest] ->
+            AccRemove = remove_block(FileId, AccEndRest), 
+            NewAcc = cleanup_free_blocks(AccStart++[{FileCount,{file, FileId}}, {FreeCount-FileCount, free}]++AccRemove),
+            compact_blocks(Rest, NewAcc);
+        _ -> compact_blocks(Rest, Acc)
     end.
 
 part1() -> part1(?DEFAULT_INPUT_FILE).
