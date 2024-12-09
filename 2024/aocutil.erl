@@ -3,4 +3,4 @@
 
 read_lines(Filename) ->
     {ok, Data} = file:read_file(Filename),
-    string:tokens(erlang:binary_to_list(Data), "\n").
+    string:tokens(erlang:binary_to_list(Data), "\r\n").
