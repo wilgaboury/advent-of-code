@@ -6,8 +6,8 @@
 comb2(List) -> comb2(List, []).
 comb2([], Acc) -> Acc;
 comb2([Head|Rest], Acc) ->
-    NewAcc = Acc++lists:map(fun(Elem) -> {Head, Elem} end, Rest),
-    comb2(Rest, NewAcc).
+    NewCombs = lists:map(fun(Elem) -> {Head, Elem} end, Rest),
+    comb2(Rest, NewCombs++Acc).
 
 antinodes(List) ->
     lists:flatten(lists:map(fun({P1, P2}) -> antinodes(P1, P2) end, comb2(List))).
@@ -21,13 +21,15 @@ resonant_antinodes(List, InBounds) ->
 resonant_antinodes({Ax, Ay}, {Bx, By}, InBounds) ->
     Dx = Ax - Bx,
     Dy = Ay - By,
-    [{Ax, Ay}, {Bx, By}]++resonant_antinodes_gen({Ax, Ay}, {Dx, Dy}, InBounds, [])++resonant_antinodes_gen({Bx, By}, {-Dx, -Dy}, InBounds, []).
+    Left = resonant_antinodes_gen({Ax, Ay}, {Dx, Dy}, InBounds, []),
+    Right = resonant_antinodes_gen({Bx, By}, {-Dx, -Dy}, InBounds, []),
+    [{Ax, Ay}, {Bx, By}]++Left++Right.
 
 resonant_antinodes_gen({X, Y}, {Dx, Dy}, InBounds, Acc) ->
     XNew = X + Dx,
     YNew = Y + Dy,
     case InBounds({XNew, YNew}) of
-        true -> resonant_antinodes_gen({XNew, YNew}, {Dx, Dy}, InBounds, Acc++[{XNew, YNew}]);
+        true -> resonant_antinodes_gen({XNew, YNew}, {Dx, Dy}, InBounds, [{XNew, YNew}|Acc]);
         false -> Acc
     end.
 
@@ -56,7 +58,7 @@ read_map(Filename) ->
     Width = length(FirstLine),
     Height = length(Lines),
     InBounds = fun({X, Y}) -> X >= 0 andalso X < Width andalso Y >= 0 andalso Y < Height end,
-    {Map, InBounds}.    
+    {Map, InBounds}.
 
 part1() -> part1(?DEFAULT_INPUT_FILE).
 part1(Filename) ->
