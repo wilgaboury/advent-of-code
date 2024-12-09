@@ -1,5 +1,5 @@
 -module(day9).
--export([part1/0, part1/1, part2/0, part2/1]).
+-export([part1/0, part1/1, part2/0, part2/1, cleanup_free_blocks/1, compact_blocks/1]).
 
 -define(DEFAULT_INPUT_FILE, "day9_input.txt").
 
@@ -42,15 +42,48 @@ list_to_blocks([Head|Rest], Acc) ->
     Count = 1+length(Rest)-length(Next),
     list_to_blocks(Next, [{Count, Head}|Acc]).
 
-blocks_to_list(Blocks) -> lists:reverse(lists:foldl(
-        fun({Count, Value}, Acc) ->
-            lists:duplicate(Count, Value)++Acc
-        end,
-        [],
-        Blocks
-    )).
+blocks_to_list(Blocks) -> 
+    Blockize = fun({Count, Value}, Acc) -> lists:duplicate(Count, Value)++Acc end,
+    lists:reverse(lists:foldl(Blockize, [], Blocks)).
 
-compact_blocks(List) -> List.
+cleanup_free_blocks(List) -> cleanup_free_blocks(List, []).
+cleanup_free_blocks([], Acc) -> lists:reverse(Acc);
+cleanup_free_blocks([{Count, {file, Id}}|Rest], Acc) -> cleanup_free_blocks(Rest, [{Count, {file, Id}}|Acc]);
+cleanup_free_blocks([{Count, free}|Rest], Acc) -> 
+    case Count == 0 of
+        true -> cleanup_free_blocks(Rest, Acc);
+        false ->
+            Splitter = fun({_, Value}) -> case Value of free -> true; _ -> false end end, 
+            {Free, NewRest} = lists:splitwith(Splitter, Rest),
+            NewFreeCount = Count + lists:foldl(fun({C, _}, Sum) -> C + Sum end, 0, Free),
+            cleanup_free_blocks(NewRest, [{NewFreeCount, free}|Acc])
+    end.
+
+remove_block(TargetId, List) ->
+    Remove = fun({Count, Value}) ->
+        case Value of
+            {file, Id} when Id == TargetId -> {Count, free};
+            _ -> {Count, Value}
+        end
+    end,
+    cleanup_free_blocks(lists:map(Remove, List)).
+
+compact_blocks(List) -> compact_blocks(lists:reverse(List), List).
+compact_blocks([], Acc) -> Acc;
+compact_blocks([{_, free}|Rest], Acc) -> compact_blocks(Rest, Acc);
+compact_blocks([{BCount,{file, BId}}|Rest], Acc) ->
+    Splitter = fun({Count, Value}) ->
+        case Value of
+            {file, Id} -> BId /= Id;
+            free -> Count < BCount
+        end
+    end,
+    {AccStart, AccEnd} = lists:splitwith(Splitter, Acc),
+    case AccEnd of
+        [{Count, free}|AccEndRest] -> compact_blocks(Rest, cleanup_free_blocks(AccStart++[{BCount,{file, BId}}, {Count-BCount, free}]++remove_block(BId, AccEndRest)));
+        [] -> compact_blocks(Rest, AccStart);
+        _ -> compact_blocks(Rest, AccStart++AccEnd) 
+    end.
 
 part1() -> part1(?DEFAULT_INPUT_FILE).
 part1(Filename) ->
