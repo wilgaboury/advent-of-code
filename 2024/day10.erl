@@ -17,6 +17,12 @@ parse_map(Filename) ->
 pos_to_array_index({X, Y}, Width) -> X + Width * Y.
 array_index_to_pos(I, Width) -> {I div Width, I rem Width}.
 
+get_map_value({X, Y}, {MapArray, Width, Height}) ->
+    case X >= 0 andalso X < Width andalso Y >= 0 andalso Y < Width of
+        true -> array:get(pos_to_array_index({X, Y}, Width), MapArray);
+        false -> undefined
+    end.
+
 find_value_positions(Target, MapArray, Width) ->
   Indexes = array:foldl(
       fun(I, Value, Acc) ->
@@ -32,19 +38,27 @@ find_value_positions(Target, MapArray, Width) ->
 
 calculate_score(Start, Map) -> calculate_score([Start], Map, sets:new(), 0).
 calculate_score([], _, _, Score) -> Score;
-calculate_score([Head|Rest], Map, Visited, Score) ->
-    case sets:is_element(Head, Visited) of
+calculate_score([Cur|Rest], Map, Visited, Score) ->
+    case sets:is_element(Cur, Visited) of
         true -> calculate_score(Rest, Map, Visited, Score);
         false -> 
-            {X,Y} = Head,
+            {X,Y} = Cur,
+            CurValue = get_map_value(Cur)
             {MapArray, Width, Height} = Map,
-            NewVisited = sets:add_element(Head, Visited),
-            NewScore = case Head == 9 of true -> Score+1; false -> Score end,
+            NewVisited = sets:add_element(Cur, Visited),
+            NewScore = case CurValue == 9 of true -> Score+1; false -> Score end,
             PosDiffs = [{0,1}, {1,0}, {0,-1}, {-1,0}],
             VisitCandidates = lists:map(fun({Dx, Dy}) -> {X+Dx, Y+Dy} end, PosDiffs),
             RemoveVisited = lists:filter(fun(P) -> not sets:is_element(P, NewVisited) end, VisitCandidates)
-            Visit = 
-            calculate_score(Visit, Map, NewVisited, NewScore)
+            IsPath = fun(Next) -> 
+                Value = get_map_value(Next),
+                case Value of
+                    undefined -> false;
+                    _ -> Value - CurValue == 1
+                end
+            end,
+            Visit = lists:filter(IsPath, RemoveVisited),
+            calculate_score(Rest++Visit, Map, NewVisited, NewScore)
     end.
 
 part1(Filename) ->
