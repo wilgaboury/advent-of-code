@@ -30,8 +30,26 @@ find_value_positions(Target, MapArray, Width) ->
   ),
   lists:map(fun(I) -> array_index_to_pos(I, Width) end, Indexes). 
 
+calculate_score(Start, Map) -> calculate_score([Start], Map, sets:new(), 0).
+calculate_score([], _, _, Score) -> Score;
+calculate_score([Head|Rest], Map, Visited, Score) ->
+    case sets:is_element(Head, Visited) of
+        true -> calculate_score(Rest, Map, Visited, Score);
+        false -> 
+            {X,Y} = Head,
+            {MapArray, Width, Height} = Map,
+            NewVisited = sets:add_element(Head, Visited),
+            NewScore = case Head == 9 of true -> Score+1; false -> Score end,
+            PosDiffs = [{0,1}, {1,0}, {0,-1}, {-1,0}],
+            VisitCandidates = lists:map(fun({Dx, Dy}) -> {X+Dx, Y+Dy} end, PosDiffs),
+            RemoveVisited = lists:filter(fun(P) -> not sets:is_element(P, NewVisited) end, VisitCandidates)
+            Visit = 
+            calculate_score(Visit, Map, NewVisited, NewScore)
+    end.
+
 part1(Filename) ->
-  {MapArray, Width, Height} = parse_map(Filename),
+  Map = parse_map(Filename),
+  {MapArray, Width, Height} = Map,
   Trailheads = find_value_positions(0, MapArray, Width),
-  Terminals = find_value_positions(9, MapArray, Width),
-  ok.
+  Scores = lists:map(fun(Trailhead) -> calculate_score(Trailhead, Map) end, Trailheads),
+  lists:foldl(fun(Score, Sum) -> Score + Sum end, 0, Scores).
