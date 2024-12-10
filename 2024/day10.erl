@@ -1,5 +1,5 @@
 -module(day10).
--export([part1/0, part1/1]).
+-export([part1/0, part1/1, part2/0, part2/1]).
 
 -define(DEFAULT_INPUT_FILE, "day10_input.txt").
 
@@ -62,7 +62,25 @@ calculate_score([Cur|Rest], Map, Visited, Score) ->
             calculate_score(Rest++Visit, Map, NewVisited, NewScore)
     end.
 
-calculate_rating() -> ok. 
+calculate_rating(Start, Map) -> calculate_rating([Start], Map, 0).
+calculate_rating([], _, Rating) -> Rating;
+calculate_rating([Cur|Rest], Map, Rating) ->
+    {X,Y} = Cur,
+    CurValue = get_map_value(Cur, Map),
+    NewRating = case CurValue == 9 of true -> Rating+1; false -> Rating end,
+    PosDiffs = [{0,1}, {1,0}, {0,-1}, {-1,0}],
+    VisitCandidates = lists:map(fun({Dx, Dy}) -> {X+Dx, Y+Dy} end, PosDiffs),
+    IsPath = fun(Next) -> 
+        Value = get_map_value(Next, Map),
+        case Value of
+            undefined -> false;
+            _ -> Value - CurValue == 1
+        end
+    end,
+    Visit = lists:filter(IsPath, VisitCandidates),
+    calculate_rating(Rest++Visit, Map, NewRating).
+
+sum_list(List) -> lists:foldl(fun(Value, Sum) -> Value + Sum end, 0, List).
 
 part1() -> part1(?DEFAULT_INPUT_FILE).
 part1(Filename) ->
@@ -70,4 +88,12 @@ part1(Filename) ->
     {MapArray, Width, _} = Map,
     Trailheads = find_value_positions(0, MapArray, Width),
     Scores = lists:map(fun(Trailhead) -> calculate_score(Trailhead, Map) end, Trailheads),
-    lists:foldl(fun(Score, Sum) -> Score + Sum end, 0, Scores).
+    sum_list(Scores).
+
+part2() -> part2(?DEFAULT_INPUT_FILE).
+part2(Filename) ->
+    Map = parse_map(Filename),
+    {MapArray, Width, _} = Map,
+    Trailheads = find_value_positions(0, MapArray, Width),
+    Ratings = lists:map(fun(Trailhead) -> calculate_rating(Trailhead, Map) end, Trailheads),
+    sum_list(Ratings).
