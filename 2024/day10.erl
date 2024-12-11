@@ -1,5 +1,5 @@
 -module(day10).
--export([part1/0, part1/1, part2/0, part2/1]).
+-export([part1/0, part1/1, part2/0, part2/1, calculate_score/2, calculate_rating/2]).
 
 -define(DEFAULT_INPUT_FILE, "day10_input.txt").
 
@@ -87,7 +87,7 @@ part1(Filename) ->
     Map = parse_map(Filename),
     {MapArray, Width, _} = Map,
     Trailheads = find_value_positions(0, MapArray, Width),
-    Scores = lists:map(fun(Trailhead) -> calculate_score(Trailhead, Map) end, Trailheads),
+    Scores = rpc:pmap({day10, calculate_score}, [Map], Trailheads),
     sum_list(Scores).
 
 part2() -> part2(?DEFAULT_INPUT_FILE).
@@ -95,5 +95,5 @@ part2(Filename) ->
     Map = parse_map(Filename),
     {MapArray, Width, _} = Map,
     Trailheads = find_value_positions(0, MapArray, Width),
-    Ratings = lists:map(fun(Trailhead) -> calculate_rating(Trailhead, Map) end, Trailheads),
+    Ratings = rpc:pmap({day10, calculate_rating}, [Map], Trailheads),
     sum_list(Ratings).
